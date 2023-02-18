@@ -13,7 +13,6 @@ const getMultiKeysFromRedis = async (keys = []) => {
     return JSON.parse(JSON.stringify(data) || {});
 }
 
-
 const searchKeys = async (string = '') => new Promise((resolve,reject) => {
     return redisClient.scan(0, 'MATCH', string, async (err,reply) => {
         if (err) { console.log(err)}
@@ -34,10 +33,21 @@ const addToCache = async (key, redisUpdates = []) => {
     });
 }
 
+const deleteAllKeys = async () => {
+    return new Promise((resolve,reject) => {
+        redisClient.flushall((err, reply) => {
+            if (err) { console.log(err) }
+            console.log(reply)
+            resolve(true)
+        });
+    });
+}
+
 
 module.exports.searchKeys = searchKeys;
 module.exports.getKeyFromRedis = getKeyFromRedis;
 module.exports.getMultiKeysFromRedis = getMultiKeysFromRedis;
 module.exports.addToCache = addToCache;
+module.exports.deleteAllKeys = deleteAllKeys;
 
 

@@ -1,8 +1,9 @@
 const moment = require("moment");
 const { Blockchain, LedgerBlock } = require('./Ledger');
-const { getRandomFloatBetween } = require("../Utility");
+const { getRandomFloatBetween, getNestedObject } = require("../Utility");
+const { redisClient } = require('../Cache/Connect');
 
-const DEBUG = true;
+const DEBUG = false;
 
 const genesisBlock = {
     customerId: "BMO123",
@@ -46,30 +47,51 @@ const assetClasses = [
     'Commercial ABS'
 ]
 
+const customerIds = [
+    '63eaca8559ef868d14301442',
+    '63ed51357b05a5c9a9d0991e'
+]
+
 const fillBlockChainData = (ledger, desiredNumber = 10) => {
     var indexIncrement = 0;
+    const redisUpdates = [];
     while (indexIncrement <= desiredNumber) {
         // Fill Loan Tape
+        let customerId      = customerIds[Math.floor(Math.random() * customerIds.length)];
         let assetClass      = assetClasses[Math.floor(Math.random() * assetClasses.length)];
         let facilityID      = Math.floor(getRandomFloatBetween(1,100))
         var facility        = facilityNames[Math.floor(Math.random() * facilityNames.length)] + '-' + String(Math.floor(getRandomFloatBetween(1,72)))
         var randomAmount    = 1000 * getRandomFloatBetween(1,100)
-        var transactionDate = moment().add(indexIncrement, 'hours').toDate()
+        var transactionDate = moment().add(indexIncrement, 'hours').toISOString()
         let transaction = {
+            transactionId: Math.floor(Math.random() * Date.now()),
+            customerId: customerId,
             assetClass: assetClass,
+            amount: randomAmount,
+            term: getRandomFloatBetween(1,72),
+            interest: getRandomFloatBetween(0,0.08),
+            loanToValue: getRandomFloatBetween(0,1),
             facilityID: facilityID,
             facilityName: facility,
-            amount: randomAmount,
-            transactionDate: transactionDate,
+            transactionDate: transactionDate
         }
-        
         ledger.appendLedgerBlock(transaction)
+        // let transactionKey = `transactions:${transaction.customerId}:${transaction.facilityName}:${transaction.transactionDate}:${transaction.transactionId}`
+        redisUpdates.push(customerId)
         if (indexIncrement === desiredNumber) {
             DEBUG && console.log(ledger.blockchain)
-            console.log(`Transactions recorded at: ${moment().toDate()}`)
+            DEBUG && console.log(`Transactions recorded at: ${moment().toDate()}`)
         }
         indexIncrement++
     }
+    let uniqueCustomers = [...new Set(redisUpdates)]
+    uniqueCustomers.forEach(customerId => {
+        let customerTransactions = ledger.blockchain.filter(transaction => transaction.data.customerId === customerId)
+        redisClient.mset(`ledger:customer:${customerId}`, JSON.stringify(customerTransactions), (err, reply) => { if (err) { console.log(err)} console.log(reply)})
+    });
+
+    // Update the final blockchain snapshot
+    redisClient.mset(`ledger:blockchain:snapshot:${moment().toISOString()}`, JSON.stringify(ledger.blockchain), (err, reply) => { if (err) {console.log(err)} console.log(reply)})
 }
 
 module.exports.fillBlockChainData = fillBlockChainData;

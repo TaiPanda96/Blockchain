@@ -14,6 +14,21 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+// Set Allow Access Control Origin
+const allowedOrigins = ['http://localhost:3000'];
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, content-type, auth-token, Authorization, stripe-signature, APPS');
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  return next();
+});
+
 process.on('unhandledRejection', (reason, promise) => {
     console.log('Unhandled Rejection at:', promise, 'reason:', reason);
     let error = reason.stack.split("\n").map(e => e.trim()) || [];
@@ -48,6 +63,8 @@ app.use('/api', routes);
 // Blockchain
 const { Blockchain } = require('./Blockchain/Ledger');
 const { initializeLedger } = require("./Blockchain/UpdateLedger");
+const { fillBlockChainData } = require("./Blockchain/FillBlockChain");
+
 var ledger = new Blockchain(moment().toDate());
 if (process.env.RUN === 'TRUE') {
     ledger.startGenesisBlock();
@@ -58,6 +75,9 @@ if (process.env.RUN === 'TRUE') {
 
 // Event Framework
 const { eventEmitter } = require('./Triggers/GlobalEmitter');
+const { deleteAllKeys } = require('./Cache/RedisFunctions');
+const { transactionCron } = require("./CronJob/CronContainer");
+transactionCron();
 // Handling
 const { customerEventHandler, transactionEventHandler } = require('./Triggers/EventMonitoring');
 
@@ -66,5 +86,10 @@ eventEmitter.on("customer", async function verify(customerObj = {}) {
 });
 
 eventEmitter.on("transaction", async function verify(transactionObj = {}) {
+    console.log('Event Triggered: Transaction');
+    return transactionEventHandler(ledger, transactionObj);
+});
+
+eventEmitter.on("risk", async function verify(transactionObj = {}) {
     return transactionEventHandler(ledger, transactionObj);
 });

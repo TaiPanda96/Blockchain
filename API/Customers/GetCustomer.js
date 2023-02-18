@@ -9,7 +9,7 @@ const errorMessage = {
 const getCustomer = async (req, res) => {
     let { customerId } = req.query;
     if (typeof customerId !== 'string' ) { return res.status(400).send({...errorMessage, error: 'Invalid customer id'})}
-    let customer = await mongoOptimCustomer.findOne({_id:customerId}, {
+    let customer = await mongoOptimCustomer.findOne({customerId:customerId}, {
         customerId: 1,
         orgLabel: 1,
         customerName: 1,
