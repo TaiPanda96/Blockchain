@@ -24,28 +24,32 @@ const getAllTransactions = async (req, res) => {
     let filterApplied = [];
 
     if (transactionDate) {
-        filterApplied.push({label:'transactionDate', value: moment(transactionDate,'YYYY-MM-DD').toISOString()});
+        filterApplied.push({ label: 'transactionDate', value: moment(transactionDate, 'YYYY-MM-DD').toISOString() });
     }
     if (assetClass) {
-        filterApplied.push({label:'assetClass', value: assetClass});
+        filterApplied.push({ label: 'assetClass', value: assetClass });
         if (typeof assetClass !== 'string') return res.status(400).send({ ...errorMessage, error: 'Invalid asset class' });
     }
 
-    filterApplied.forEach((filter) => {
-        if (filter.label === 'transactionDate') {
-            output = ledger.filter((transaction) => {
-                if (moment(transaction.data.transactionDate,'YYYY-MM-DD').toISOString() === filter.value) {
-                    return transaction;
-                }
-            })
-        } else {
-            output = ledger.filter((transaction) => {
-                if (transaction.data[filter.label] === filter.value) {
-                    return transaction;
-                }
-            })
-        }
-    })
+    if (filterApplied.length === 0) {
+        output = ledger.sort((a,b) => a.transactionDate > b.transactionDate ? 1: -1).slice(0,15)
+    } else {
+        filterApplied.forEach((filter) => {
+            if (filter.label === 'transactionDate') {
+                output = ledger.filter((transaction) => {
+                    if (moment(transaction.data.transactionDate, 'YYYY-MM-DD').toISOString() === filter.value) {
+                        return transaction;
+                    }
+                })
+            } else {
+                output = ledger.filter((transaction) => {
+                    if (transaction.data[filter.label] === filter.value) {
+                        return transaction;
+                    }
+                })
+            }
+        })
+    }
     return res.status(200).send(output);
 }
 

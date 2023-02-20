@@ -1,6 +1,6 @@
 const mongoose   = require("mongoose");
 const { Schema } = mongoose;
-const { connectionInstance } = require("../Connect");
+const { connectionInstance } = require("../MongoConnect");
 
 const OptimUserSchema = new Schema({
   customerId: {

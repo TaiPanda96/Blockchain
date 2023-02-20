@@ -76,7 +76,6 @@ const fillBlockChainData = (ledger, desiredNumber = 10) => {
             transactionDate: transactionDate
         }
         ledger.appendLedgerBlock(transaction)
-        // let transactionKey = `transactions:${transaction.customerId}:${transaction.facilityName}:${transaction.transactionDate}:${transaction.transactionId}`
         redisUpdates.push(customerId)
         if (indexIncrement === desiredNumber) {
             DEBUG && console.log(ledger.blockchain)

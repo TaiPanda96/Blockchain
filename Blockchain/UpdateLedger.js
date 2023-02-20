@@ -7,24 +7,6 @@ const { fillBlockChainData } = require('./FillBlockChain');
 // Connect to Redis
 const { redisClient } = require('../Cache/Connect');
 
-const FILL = true;
-
-const verifyTransaction = (transactionData = {}) => {
-    if (Object.keys(transactionData).length === 0) { return false }
-    // Verify that transaction details is accurate
-    if (Object.keys(transactionData).filter(e => ['customerId', 'transactionAmount', 'transactionDate'].includes(e)).some(key => { if (!transactionData[key]) { return false } }));
-
-    // Verify customer information is accurate
-    let existingCustomer = mongoOptimCustomer.findOne({ customerId: transactionData.customerId }) || {};
-    if (!existingCustomer) return false;
-
-    let { transactionAmount, transactionDate, ...rest } = transactionData;
-    // Verify transaction amount
-    if (isNaN(transactionAmount) || !isNaN(parseInt(transactionAmount)) < 0) { return false };
-    // Verify transaction Date
-    if (!moment(transactionDate, 'YYYY-MM-DD').isValid()) { return false };
-    return true;
-}
 const initializeLedger = (ledger) => {
     FILL && fillBlockChainData(ledger, 25)
     var ledgerKeys = ledger.blockchain.map((e, idx) => {
@@ -54,6 +36,4 @@ const initializeLedger = (ledger) => {
     });
 }
 
-
-module.exports.verifyTransaction = verifyTransaction;
 module.exports.initializeLedger  = initializeLedger;

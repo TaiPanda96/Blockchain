@@ -43,11 +43,35 @@ const deleteAllKeys = async () => {
     });
 }
 
-
+const getCachedQueryResult = async (cacheKey, cacheExpiry,resultFunction, resultArgs = {}) => {
+    let output = []
+    try {
+        let cacheResult = await redisClient.get(cacheKey);
+        if (cacheResult) {
+            output = JSON.parse(cacheResult);
+            console.log('Found this data from cache!')
+        } else {
+            let args = resultArgs.args || {}
+            if (!args) { return }
+            let { filterQuery, projectionQuery } = args; 
+            let cachedResult   = await resultFunction.findOne(filterQuery,projectionQuery);
+            if (cachedResult) {
+                output = [cachedResult] 
+            } 
+        }
+        return output
+    } catch (err) {
+        console.log(err)
+    } finally {
+        redisClient.setex(cacheKey, 1, JSON.stringify(output), (err,reply) => {
+            if (err) { console.log(err)};
+            console.log(reply)
+        })
+    }
+}
 module.exports.searchKeys = searchKeys;
 module.exports.getKeyFromRedis = getKeyFromRedis;
 module.exports.getMultiKeysFromRedis = getMultiKeysFromRedis;
 module.exports.addToCache = addToCache;
 module.exports.deleteAllKeys = deleteAllKeys;
-
-
+module.exports.getCachedQueryResult = getCachedQueryResult;
