@@ -1,7 +1,7 @@
 const moment = require("moment");
-const { Blockchain, LedgerBlock } = require('./Ledger');
+const { Blockchain, LedgerBlock, addLedgerBlockStatic } = require('./Ledger');
 const { getRandomFloatBetween, getNestedObject } = require("../Utility");
-const { redisClient } = require('../Cache/Connect');
+const { getKeyFromRedis, addToCache } = require('../Cache/RedisFunctions')
 
 const mongoOptimCustomer = require("../Schemas/Customers/CustomerSchema");
 
@@ -54,45 +54,43 @@ const customerIds = [
     '63ed51357b05a5c9a9d0991e'
 ]
 
-const fillBlockChainData = (ledger, desiredNumber = 10) => {
+const fillBlockChainData = (desiredNumber = 10) => {
     var indexIncrement = 0;
-    const redisUpdates = [];
     while (indexIncrement <= desiredNumber) {
         // Fill Loan Tape
-        let customerId      = customerIds[Math.floor(Math.random() * customerIds.length)];
-        let assetClass      = assetClasses[Math.floor(Math.random() * assetClasses.length)];
-        let facilityID      = Math.floor(getRandomFloatBetween(1,100))
-        var facility        = facilityNames[Math.floor(Math.random() * facilityNames.length)] + '-' + String(Math.floor(getRandomFloatBetween(1,72)))
-        var randomAmount    = 1000 * getRandomFloatBetween(1,100)
+        let customerId = customerIds[Math.floor(Math.random() * customerIds.length)];
+        let assetClass = assetClasses[Math.floor(Math.random() * assetClasses.length)];
+        let facilityID = Math.floor(getRandomFloatBetween(1, 100))
+        var facility = facilityNames[Math.floor(Math.random() * facilityNames.length)] + '-' + String(Math.floor(getRandomFloatBetween(1, 72)))
+        var randomAmount = 1000 * getRandomFloatBetween(1, 100)
         var transactionDate = moment().add(indexIncrement, 'hours').toISOString()
         let transaction = {
             transactionId: Math.floor(Math.random() * Date.now()),
             customerId: customerId,
             assetClass: assetClass,
             amount: randomAmount,
-            term: getRandomFloatBetween(1,72),
-            interest: getRandomFloatBetween(0,0.08),
-            loanToValue: getRandomFloatBetween(0,1),
+            term: getRandomFloatBetween(1, 72),
+            interest: getRandomFloatBetween(0, 0.08),
+            loanToValue: getRandomFloatBetween(0, 1),
             facilityID: facilityID,
             facilityName: facility,
             transactionDate: transactionDate
         }
-        ledger.appendLedgerBlock(transaction)
-        redisUpdates.push(customerId)
-        if (indexIncrement === desiredNumber) {
-            DEBUG && console.log(ledger.blockchain)
-            DEBUG && console.log(`Transactions recorded at: ${moment().toDate()}`)
-        }
+        setTimeout(async () => {
+            let existingCache = await getKeyFromRedis(`ledger:${customerId}:blockchain`);
+            if (existingCache) {
+                let blockchain = JSON.parse(existingCache)
+                let redisUpdate = addLedgerBlockStatic(blockchain, transaction)
+                if (redisUpdate.length === 0) { return console.log('No updates') };
+                addToCache(`ledger:${transaction.customerId}:blockchain`, redisUpdate).then((reply) => {
+                    console.log(`Transaction Added to Blockchain ${reply}`);
+                    // console.log(blockchain[blockchain.length - 1])
+                }).catch((err) => console.log(err));
+                await mongoOptimCustomer.updateOne({ customerId: transaction.customerId }, { $set: { blockChainSnapshot: redisUpdate } });
+            }
+        }, indexIncrement * 300);
         indexIncrement++
     }
-    let uniqueCustomers = [...new Set(redisUpdates)]
-    uniqueCustomers.forEach(customerId => {
-        let customerTransactions = ledger.blockchain.filter(transaction => transaction.data.customerId === customerId)
-        redisClient.mset(`ledger:customer:${customerId}`, JSON.stringify(customerTransactions), (err, reply) => { if (err) { console.log(err)} console.log(reply)})
-    });
-
-    // Update the final blockchain snapshot
-    redisClient.mset(`ledger:blockchain:snapshot:${moment().toISOString()}`, JSON.stringify(ledger.blockchain), (err, reply) => { if (err) {console.log(err)} console.log(reply)})
 }
 const initializeLedger = (ledger) => {
     FILL && fillBlockChainData(ledger, 25)
@@ -117,7 +115,7 @@ const initializeLedger = (ledger) => {
         console.log(`Expire ${cacheKey}:${reply}`)
     });
     // Create Immutable Blockchain in Cache
-    redisClient.mset({[blockChainCacheKey]: JSON.stringify(ledger.blockchain) }, (err, reply) => {
+    redisClient.mset({ [blockChainCacheKey]: JSON.stringify(ledger.blockchain) }, (err, reply) => {
         if (err) { console.log(err) }
         console.log(`Blockchain Updated ${cacheKey}:${reply}`)
     });
