@@ -30,6 +30,7 @@ const smartContractEventHandler = async (ledger, smartContract = {}) => {
             console.log(`Transaction Added to Blockchain ${reply}`);
             console.log(blockChain[blockChain.length - 1])
         }).catch((err) => console.log(err));
+        await mongoOptimCustomer.updateOne({customerId: smartContract.customerId}, {$push: { smartContract: smartContract}} );
     } else {
         let existingCustomer = await mongoOptimCustomer.findOne({ customerId: smartContract.customerId }, {
             _id: 0,
@@ -56,6 +57,7 @@ const smartContractEventHandler = async (ledger, smartContract = {}) => {
         addToCache(`smartContract:${smartContract.customerId}:${smartContract.contractId}`, ledger.blockchain).then((reply) => {
             console.log(`Smart Contract Added For ${smartContract.customerId}: ${reply}`);
         }).catch((err) => console.log(err));
+        await mongoOptimCustomer.updateOne({customerId: smartContract.customerId}, {$push: { smartContracts: smartContract}} );
     }
 }
 
@@ -73,6 +75,7 @@ const transactionEventHandler = async (ledger, transactionObj = {}) => {
             console.log(`Transaction Added to Blockchain ${reply}`);
             console.log(blockChain[blockChain.length - 1])
         }).catch((err) => console.log(err));
+        await mongoOptimCustomer.updateOne({customerId: transactionObj.customerId}, {$set: { blockChainSnapshot: redisUpdate}} );
     } else {
         // Initialize Genesis Block and Pass the New Customer Obj to create the new ledger
         let existingCustomer = await mongoOptimCustomer.findOne({customerId: transactionObj.customerId}, {
@@ -98,6 +101,7 @@ const transactionEventHandler = async (ledger, transactionObj = {}) => {
         addToCache(`ledger:${transactionObj.customerId}:blockchain`, ledger.blockchain).then((reply) => {
             console.log(`Transaction Added to Blockchain ${reply}`);
         }).catch((err) => console.log(err));
+        await mongoOptimCustomer.updateOne({customerId: transactionObj.customerId}, {$set: { blockChainSnapshot: ledger.blockchain}} );
     }
 }
 
