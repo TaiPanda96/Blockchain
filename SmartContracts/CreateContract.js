@@ -1,24 +1,16 @@
-const { createFinancialCovenant } = require('./Contracts/Covenant');
+const { createFinancialCovenant } = require('./Contracts/CovenantTriggerContract');
 
-const initSmartContract = async (customerId, type = 'covenant', eSign = false) => {
-    if (!contractName) { throw new Error('Contract name is required') }
-    let { contractName,  } = contractArgs;
-    if (eSign) { 
-        // Get Document Link from S3
-        contractArgs['eSign'] = {
-            link: '',
-            expiryDate: '',
-        }
-    }
+const initSmartContract = async (customerId, type = 'covenant', contractArgs = {}) => {
+    if (contractArgs['eSign']) { contractArgs['eSign'] = {...contractArgs, s3Location: '', 'documentType': ''}}
     let smartContract;
     switch (type) {
         case 'covenant':
-            smartContract = createFinancialCovenant(customerId)
+            smartContract = createFinancialCovenant(customerId,{...contractArgs, contractType: type})
             break;
         case 'risk-downgrade':
             break;
         default:
-            smartContract = createFinancialCovenant(customerId)
+            smartContract = createFinancialCovenant(customerId,{...contractArgs, contractType: type})
             break;
     }
     return smartContract

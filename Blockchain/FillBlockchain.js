@@ -3,7 +3,9 @@ const { Blockchain, LedgerBlock } = require('./Ledger');
 const { getRandomFloatBetween, getNestedObject } = require("../Utility");
 const { redisClient } = require('../Cache/Connect');
 
-const DEBUG = false;
+const mongoOptimCustomer = require("../Schemas/Customers/CustomerSchema");
+
+const DEBUG = true;
 
 const genesisBlock = {
     customerId: "BMO123",
@@ -92,6 +94,36 @@ const fillBlockChainData = (ledger, desiredNumber = 10) => {
     // Update the final blockchain snapshot
     redisClient.mset(`ledger:blockchain:snapshot:${moment().toISOString()}`, JSON.stringify(ledger.blockchain), (err, reply) => { if (err) {console.log(err)} console.log(reply)})
 }
+const initializeLedger = (ledger) => {
+    FILL && fillBlockChainData(ledger, 25)
+    var ledgerKeys = ledger.blockchain.map((e, idx) => {
+        return {
+            currentAddress: e.hash,
+            previousAddress: e.precedingHash,
+            nextAddress: idx <= ledger.blockchain.length - 2 ? ledger.blockchain[idx + 1].hash : null
+        }
+    });
+    var cacheKey = `ledger:keys:${moment().toDate().getTime()}`;
+    var blockChainCacheKey = `ledger:blockchain`;
+
+    // Push Snapshot of Ledger with Latest Transaction and Key Traversal Sequence
+    redisClient.mset({ [cacheKey]: JSON.stringify({ 'lastTransaction': ledger.blockchain[ledger.blockchain.length - 1] || [], 'keySequence': ledgerKeys }) }, (err, reply) => {
+        if (err) { console.log(err) }
+        console.log(`Cach Key Updated ${cacheKey}:${reply}`)
+    });
+    // Set Expiry of Snapshot
+    redisClient.expire(cacheKey, 5184000, (err, reply) => {
+        if (err) { console.log(err) }
+        console.log(`Expire ${cacheKey}:${reply}`)
+    });
+    // Create Immutable Blockchain in Cache
+    redisClient.mset({[blockChainCacheKey]: JSON.stringify(ledger.blockchain) }, (err, reply) => {
+        if (err) { console.log(err) }
+        console.log(`Blockchain Updated ${cacheKey}:${reply}`)
+    });
+}
+
 
 module.exports.fillBlockChainData = fillBlockChainData;
+module.exports.initializeLedger = initializeLedger;
 module.exports.genesisBlock = genesisBlock;

@@ -26,6 +26,12 @@ class Blockchain{
         var startblock = new LedgerBlock(0,this.startDate, ledgerTapeSchema, "");
         this.blockchain.push(startblock);
     }
+
+    getGenesisBlock(){
+        if (this.blockchain.length === 0) return []
+        return this.blockchain[0];
+    }
+
     getLatestLedgerBlock(){
         if (this.blockchain.length === 0) return []
         return this.blockchain[this.blockchain.length - 1];

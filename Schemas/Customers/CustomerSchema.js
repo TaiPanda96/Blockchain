@@ -99,7 +99,24 @@ const OptimUserSchema = new Schema({
     unique: false,
     trim: true,
   },
+  blockChainSnapshot: {
+    type: Array,
+    required: false, 
+    unique: false,
+    trim: true,
+  },
+  smartContracts: {
+    type: Array,
+    required: false, 
+    unique: false,
+    trim: true,
+  },
   customerCreated: {
+    type: Date,
+    required: false,
+    default: Date.now,
+  },
+  updatedAt: {
     type: Date,
     required: false,
     default: Date.now,

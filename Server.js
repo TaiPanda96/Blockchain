@@ -62,8 +62,7 @@ app.use('/api', routes);
 
 // Blockchain
 const { Blockchain } = require('./Blockchain/Ledger');
-const { initializeLedger } = require("./Blockchain/UpdateLedger");
-const { fillBlockChainData } = require("./Blockchain/FillBlockChain");
+const { initializeLedger } = require("./Blockchain/FillBlockchain");
 
 var ledger = new Blockchain(moment().toDate());
 if (process.env.RUN === 'TRUE') {
@@ -74,12 +73,13 @@ if (process.env.RUN === 'TRUE') {
 }
 
 // Event Framework
-const { eventEmitter } = require('./Triggers/GlobalEmitter');
-const { deleteAllKeys } = require('./Cache/RedisFunctions');
+const { eventEmitter }   = require('./Triggers/GlobalEmitter');
+const { deleteAllKeys }  = require('./Cache/RedisFunctions');
 const { transactionCron } = require("./CronJob/CronContainer");
-transactionCron();
+// transactionCron();
+// deleteAllKeys();
 // Handling
-const { customerEventHandler, transactionEventHandler } = require('./Triggers/EventMonitoring');
+const { customerEventHandler, transactionEventHandler, smartContractEventHandler } = require('./Triggers/EventMonitoring');
 
 eventEmitter.on("customer", async function verify(customerObj = {}) {
     return customerEventHandler(ledger, customerObj);
@@ -93,3 +93,7 @@ eventEmitter.on("transaction", async function verify(transactionObj = {}) {
 eventEmitter.on("risk", async function verify(transactionObj = {}) {
     return transactionEventHandler(ledger, transactionObj);
 });
+
+eventEmitter.on('contract', async function verify(smartContract = {}) {
+    return smartContractEventHandler(ledger, smartContract);
+})

@@ -53,4 +53,18 @@ const getAllTransactions = async (req, res) => {
     return res.status(200).send(output);
 }
 
+const getAssetClasses = async (req,res) => {
+    let { customerId } = req.query;
+    // Check Valid Customer
+    let existingCustomer = await mongoOptimCustomer.findOne({ customerId: customerId });
+    if (!existingCustomer) return res.status(400).send({ ...errorMessage, error: 'No customer found' });
+
+    let blockchain = await getKeyFromRedis(`ledger:customer:${customerId}`);
+    if (!blockchain) return res.status(400).send({ ...errorMessage, error: 'No transactions found' });
+    let ledger = JSON.parse(blockchain || []);
+    let assetClasses = ledger.map(e => e.data.assetClass).filter(e => e) || []
+    return res.status(200).send(assetClasses || [])
+}
+
 module.exports.getAllTransactions = getAllTransactions;
+module.exports.getAssetClasses = getAssetClasses;
