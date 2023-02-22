@@ -56,6 +56,17 @@ class Blockchain{
     }
 }
 
+const addLedgerBlockStatic = (blockchain = [], data = {}) => {
+    var latestBlock = blockchain[blockchain.length - 1] || null;
+    if (!latestBlock) { return console.log('No latest block')}
+    var newIndex    = latestBlock.index + 1;
+    var newBlock    = new LedgerBlock(newIndex , moment().toDate(), data, latestBlock.hash);
+    newBlock.computeHash();
+    blockchain.push(newBlock)
+    return blockchain;
+}
+
 
 module.exports.Blockchain  = Blockchain;
 module.exports.LedgerBlock = LedgerBlock;
+module.exports.addLedgerBlockStatic = addLedgerBlockStatic;

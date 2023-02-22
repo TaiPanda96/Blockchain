@@ -64,6 +64,7 @@ app.use('/api', routes);
 const { Blockchain } = require('./Blockchain/Ledger');
 const { initializeLedger } = require("./Blockchain/FillBlockchain");
 
+
 var ledger = new Blockchain(moment().toDate());
 if (process.env.RUN === 'TRUE') {
     ledger.startGenesisBlock();
@@ -78,6 +79,7 @@ const { deleteAllKeys }  = require('./Cache/RedisFunctions');
 const { transactionCron } = require("./CronJob/CronContainer");
 // transactionCron();
 // deleteAllKeys();
+
 // Handling
 const { customerEventHandler, transactionEventHandler, smartContractEventHandler } = require('./Triggers/EventMonitoring');
 
