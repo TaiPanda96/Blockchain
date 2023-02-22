@@ -17,7 +17,7 @@ const getAllTransactions = async (req, res) => {
     if (transactionDate) {
         if (!moment(transactionDate, 'YYYY-MM-DD').isValid()) return res.status(400).send({ ...errorMessage, error: 'Invalid transaction date' });
     }
-    let blockchain = await getKeyFromRedis(`ledger:customer:${customerId}`);
+    let blockchain = await getKeyFromRedis(`ledger:${customerId}:blockchain`);
     if (!blockchain) return res.status(400).send({ ...errorMessage, error: 'No transactions found' });
     let ledger = JSON.parse(blockchain || []);
     let output = [];
