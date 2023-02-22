@@ -19,10 +19,17 @@ const customerEventHandler = async (ledger, customerObj = {}) => {
 }
 
 const smartContractEventHandler = async (ledger, smartContract = {}) => {
-    let existingContract = await getKeyFromRedis(`smartContract:${smartContract.customerId}:${smartContract.contractId}`);
-    let contracts = [];
-    if (existingContract) {
-        contracts = JSON.parse(existingContract);
+    let existingBlock = await getKeyFromRedis(`smartContract:${smartContract.customerId}:${smartContract.contractId}`);
+    let blockChain = [];
+    if (existingBlock) {
+        blockChain = JSON.parse(existingBlock);
+        // Append new transaction object
+        let redisUpdate = addLedgerBlockStatic(blockChain,smartContract)
+        if (redisUpdate.length === 0) { return console.log('No updates')};
+        addToCache(`smartContract:${smartContract.customerId}:${smartContract.contractId}`, redisUpdate).then((reply) => {
+            console.log(`Transaction Added to Blockchain ${reply}`);
+            console.log(blockChain[blockChain.length - 1])
+        }).catch((err) => console.log(err));
     } else {
         let existingCustomer = await mongoOptimCustomer.findOne({ customerId: smartContract.customerId }, {
             _id: 0,
@@ -45,13 +52,11 @@ const smartContractEventHandler = async (ledger, smartContract = {}) => {
         if (!existingCustomer) { return console.log('No existing customer, cannot call transaction event handler.') }
         // Initialize Genesis Block and Pass the New Customer Obj to create the new ledger
         ledger.startGenesisBlock(existingCustomer._doc);
+        ledger.appendLedgerBlock(smartContract);
+        addToCache(`smartContract:${smartContract.customerId}:${smartContract.contractId}`, ledger.blockchain).then((reply) => {
+            console.log(`Smart Contract Added For ${smartContract.customerId}: ${reply}`);
+        }).catch((err) => console.log(err));
     }
-    // Append new smart contract
-    ledger.appendLedgerBlock(smartContract);
-    addToCache(`smartContract:${smartContract.customerId}:${smartContract.contractId}`, [...ledger.blockchain, ...contracts]).then((reply) => {
-        console.log(`Contract Added to Blockchain ${reply}`)
-        console.log(ledger.getLatestLedgerBlock())
-    }).catch((err) => console.log(err));
 }
 
 const transactionEventHandler = async (ledger, transactionObj = {}) => {
