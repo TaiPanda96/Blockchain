@@ -50,7 +50,7 @@ const getAllTransactions = async (req, res) => {
             }
         })
     }
-    return res.status(200).send(output);
+    return res.status(200).send(output.slice(0,15));
 }
 
 const getAssetClasses = async (req, res) => {

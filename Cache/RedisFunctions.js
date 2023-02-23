@@ -53,7 +53,7 @@ const getCachedQueryResult = async (cacheKey, cacheExpiry,resultFunction, result
         } else {
             let args = resultArgs.args || {}
             if (!args) { return }
-            let { filterQuery, projectionQuery } = args; 
+            let { filterQuery, projectionQuery, method } = args; 
             let cachedResult   = await resultFunction.findOne(filterQuery,projectionQuery);
             if (cachedResult) {
                 output = [cachedResult] 
@@ -63,7 +63,7 @@ const getCachedQueryResult = async (cacheKey, cacheExpiry,resultFunction, result
     } catch (err) {
         console.log(err)
     } finally {
-        redisClient.setex(cacheKey, 1, JSON.stringify(output), (err,reply) => {
+        redisClient.setex(cacheKey, cacheExpiry, JSON.stringify(output), (err,reply) => {
             if (err) { console.log(err)};
             console.log(reply)
         })

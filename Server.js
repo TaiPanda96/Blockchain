@@ -78,9 +78,9 @@ const { eventEmitter }   = require('./Triggers/GlobalEmitter');
 const { deleteAllKeys }  = require('./Cache/RedisFunctions');
 const { transactionCron } = require("./CronJob/CronContainer");
 const { fillBlockChainData } = require('./Blockchain/FillBlockchain')
-// transactionCron();
+transactionCron();
 // deleteAllKeys();
-fillBlockChainData();
+// fillBlockChainData();
 
 // Handling
 const { customerEventHandler, transactionEventHandler, smartContractEventHandler } = require('./Triggers/EventMonitoring');
