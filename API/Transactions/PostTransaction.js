@@ -1,5 +1,5 @@
 const moment = require('moment');
-const mongoOptimCustomer = require("../../Schemas/Borrowers/Schema");
+const Borrower = require("../../Schemas/Users/UserSchema");
 const { eventEmitter } = require('../../Triggers/GlobalEmitter');
 const { getNestedObject } = require("../../Utility");
 
@@ -10,8 +10,8 @@ const errorMessage = {
 
 const postTransaction = async (req, res) => {
     // Check Valid Customer
-    let existingCustomer = await mongoOptimCustomer.findOne({ customerId: req.body.customerId });
-    if (!existingCustomer) return res.status(400).send({ ...errorMessage, error: 'No customer found' });
+    let existingBorrower = await Borrower.findOne({ _id: req.body.borrowerId });
+    if (!existingBorrower) return res.status(400).send({ ...errorMessage, error: 'No customer found' });
 
     let { type } = req.query;
 
@@ -33,9 +33,8 @@ const postTransaction = async (req, res) => {
     // Check Valid Transaction Date 
     if (!moment(req.body.transactionDate, 'YYYY-MM-DD').local().isValid()) return res.status(400).send({ ...errorMessage, error: 'Invalid transaction date' });
 
-    let transactionId = Math.floor(Math.random() * Date.now())
     let transaction = {
-        transactionId: transactionId,
+        borrowerId: existingBorrower._id.toString(),
         customerId: getNestedObject(req.body, ['customerId']) || '',
         assetClass: getNestedObject(req.body, ['assetClass']) || '',
         amount: getNestedObject(req.body, ['amount']) || '',
@@ -48,7 +47,7 @@ const postTransaction = async (req, res) => {
     }
     try {
         eventEmitter.emit('transaction', transaction)
-        return res.status(200).send([transactionId]);
+        return res.status(200).send(true);
     } catch (err) {
         return res.status(400).send({ error: err });
     }

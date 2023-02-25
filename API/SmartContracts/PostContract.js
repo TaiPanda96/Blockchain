@@ -1,7 +1,6 @@
 const moment = require('moment');
-const mongoOptimCustomer    = require("../../Schemas/Borrowers/Schema");
+const Borrower    = require("../../Schemas/Users/UserSchema");
 const { eventEmitter }      = require('../../Triggers/GlobalEmitter');
-const { getNestedObject }   = require("../../Utility");
 const { initSmartContract } = require("../../SmartContracts/CreateContract");
 
 const errorMessage = {
@@ -12,7 +11,7 @@ const errorMessage = {
 const postContract = async (req,res) => {
     let { customerId } = req.params; 
     // Check Valid Customer
-    let existingCustomer = await mongoOptimCustomer.findOne({ customerId: customerId });
+    let existingCustomer = await Borrower.findOne({ customerId: customerId });
     if (!existingCustomer) return res.status(400).send({ ...errorMessage, error: 'No customer found' });
 
     // Check Valid Contract Type

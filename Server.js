@@ -80,8 +80,8 @@ if (process.env.RUN === 'TRUE') {
 const { eventEmitter }       = require('./Triggers/GlobalEmitter');
 const { deleteAllKeys }      = require('./Cache/RedisFunctions');
 const { transactionCron }    = require("./CronJob/CronContainer");
-const { fillBlockChainData } = require('./Blockchain/FillBlockchain')
-transactionCron();
+const { fillBlockChainData } = require('./Blockchain/FillBlockchain');
+fillBlockChainData();
 
 // Handling
 const { customerEventHandler, transactionEventHandler, smartContractEventHandler } = require('./Triggers/EventMonitoring');

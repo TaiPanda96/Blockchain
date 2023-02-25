@@ -1,8 +1,10 @@
+const moment    = require("moment");
 const bcrypt    = require('bcrypt');
 const jwt       = require("jsonwebtoken");
 const jwtSecret = process.env.JWT_TOKEN;
+const { eventEmitter } = require('../../Triggers/GlobalEmitter');
 
-const User      = require("../../Schemas/Users/UserSchema");
+const User = require("../../Schemas/Users/UserSchema");
 
 const register = async (req, res) => {
     const { username, password, email, role } = req.body;
@@ -31,6 +33,7 @@ const register = async (req, res) => {
         User.create({ ...userPayload }).then((newUser) => {
             const token  = jwt.sign({ id: newUser._id, username: newUser.username, email: newUser.email, role: newUser.role, expiresIn:  3 * 60 * 60}, jwtSecret);
             res.cookie("jwt", token, { maxAge: 3 * 60 * 60 * 1000 });
+            eventEmitter.emit('customer', { ...newUser, updatedAt: moment().toDate() });
             return res.status(200).send("User successfully created");
         });
     } catch (err) {
@@ -47,7 +50,6 @@ const login = async (req, res) => {
     try {
         const user = await User.findOne({ username: username });
         if (!user) { return res.status(400).send('User does not exist') }
-        console.log(password,user.password)
         bcrypt.compare(password, user.password).then((result) => {
             if (!result) { return res.status(401).send({message: "Login Unsuccessful"}) } 
             const token  = jwt.sign({ id: user._id, username: user.username, role: user.role, expiresIn:  3 * 60 * 60 },jwtSecret);
@@ -62,11 +64,11 @@ const login = async (req, res) => {
 }
 
 const checkPermissionsMiddleware = async (req, res, next) => {
-    if (!req.cookies['jwt']) { return res.status(401).send("Access Restricted")};
+    if (!req.cookies['jwt']) { return res.status(401).send({ message: "Access Restricted" })};
     jwt.verify(req.cookies['jwt'], jwtSecret, (err, verifiedToken) => {
         if (err) { return res.status(401).send({ message: "Access Restricted", error: err }) }
         if (!verifiedToken.role) {
-            return res.status(401).send({message: "Access Restricted" });
+            return res.status(401).send({ message: "Access Restricted", error: err });
         } else {
             req.cachedData = verifiedToken;
             return next();

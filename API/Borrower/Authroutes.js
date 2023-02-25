@@ -10,7 +10,7 @@ optimUserRoute.post('/login', login);
 
 
 // Get a Profile
-optimUserRoute.get('/get', checkPermissionsMiddleware, getBorrowerProfile);
+optimUserRoute.get('/get', getBorrowerProfile);
 // Update a Profile
 const { updateBorrowerProfile } = require("./UpdateBorrower");
 optimUserRoute.post('/update',checkPermissionsMiddleware,  updateBorrowerProfile)

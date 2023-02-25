@@ -1,7 +1,7 @@
-const mongoOptimCustomer = require("../../Schemas/Borrowers/Schema");
+const Borrower = require("../../Schemas/Users/UserSchema");
 
 const createFinancialCovenant = async (customerId, args = {}) => {
-    let existingCustomer = await mongoOptimCustomer.findOne({customerId: customerId});
+    let existingCustomer = await Borrower.findOne({customerId: customerId});
     if (!existingCustomer) { return }
     return  {
         customerId: existingCustomer.customerId,

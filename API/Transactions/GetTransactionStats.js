@@ -1,5 +1,5 @@
 const moment = require('moment');
-const Borrower = require("../../Schemas/Borrowers/Schema");
+const Borrower = require("../../Schemas/Users/UserSchema");
 const { getCachedQueryResult } = require("../../Cache/RedisFunctions")
 
 const getAssetClassStats = async (req,res) => {

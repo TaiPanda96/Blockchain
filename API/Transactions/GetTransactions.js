@@ -1,5 +1,5 @@
-const moment = require('moment');
-const mongoOptimCustomer = require("../../Schemas/Borrowers/Schema");
+const moment   = require('moment');
+const Borrower = require("../../Schemas/Users/UserSchema")
 const { getKeyFromRedis, getMultiKeysFromRedis, searchKeys } = require("../../Cache/RedisFunctions");
 
 const errorMessage = {
@@ -8,16 +8,16 @@ const errorMessage = {
 }
 
 const getAllTransactions = async (req, res) => {
-    let { customerId, assetClass, transactionDate } = req.query
+    let { borrowerId, assetClass, transactionDate } = req.query
     // Check Valid Customer
-    let existingCustomer = await mongoOptimCustomer.findOne({ customerId: customerId });
+    let existingCustomer = await Borrower.findById(borrowerId);
     if (!existingCustomer) return res.status(400).send({ ...errorMessage, error: 'No customer found' });
 
     // Check Valid Transaction Date 
     if (transactionDate) {
         if (!moment(transactionDate, 'YYYY-MM-DD').isValid()) return res.status(400).send({ ...errorMessage, error: 'Invalid transaction date' });
     }
-    let blockchain = await getKeyFromRedis(`ledger:${customerId}:blockchain`);
+    let blockchain = await getKeyFromRedis(`ledger:${borrowerId}:blockchain`);
     if (!blockchain) return res.status(400).send({ ...errorMessage, error: 'No transactions found' });
     let ledger = JSON.parse(blockchain || []);
     let output = [];
@@ -56,7 +56,7 @@ const getAllTransactions = async (req, res) => {
 const getAssetClasses = async (req, res) => {
     let { customerId } = req.query;
     // Check Valid Customer
-    let existingCustomer = await mongoOptimCustomer.findOne({ customerId: customerId });
+    let existingCustomer = await Borrower.findOne({ customerId: customerId });
     if (!existingCustomer) return res.status(400).send({ ...errorMessage, error: 'No customer found' });
 
     let blockchain = await getKeyFromRedis(`ledger:customer:${customerId}`);

@@ -1,28 +1,28 @@
 const moment = require("moment");
-const { Blockchain, LedgerBlock, addLedgerBlockStatic } = require('./Ledger');
-const { getRandomFloatBetween, getNestedObject } = require("../Utility");
+const { getRandomFloatBetween } = require("../Utility");
 const { getKeyFromRedis, addToCache } = require('../Cache/RedisFunctions')
 
-const mongoOptimCustomer = require("../Schemas/Borrowers/Schema");
+const Transactions = require("../Schemas/Transactions/TransactionsSchema");
+const { Blockchain, LedgerBlock, addLedgerBlockStatic } = require('./Ledger');
 
-const DEBUG = true;
+
+const borrowerIds = ['63fa9aaaee468767315a76e8']
 
 const genesisBlock = {
-    customerId: "BMO123",
-    orgLabel: "BMO",
-    customerName: "Bank of Montreal",
-    customerType: "Bank",
-    customerAddress: "150 King Street West",
-    customerCity: "Toronto",
-    customerZip: "M5S0A5",
-    customerCountry: "Canada",
-    customerPhone: 6479195955,
-    customerEmail: "taishanlin1996@gmail.com",
-    customerWebsite: "https://www.bmo.com/main/personal",
-    customerIndustry: "Financial Services",
-    customerInddustrySub: "Financial Services & Insurance",
-    customerSIC: "1996",
-    customerNAICS: "351098utigjanlsfavaweoig"
+    "email":"taishanlin1996@gmail.com",
+    "password": "woopitydoopity32",
+    "orgLabel": "BMO",
+    "customerName": "Bank of Montreal",
+    "customerType": "Bank",
+    "customerAddress": "150 King Street West",
+    "customerCity": "Toronto",
+    "customerZip": "M5S0A5",
+    "customerCountry": "Canada",
+    "customerPhone": 6479195955,
+    "customerWebsite": "https://www.bmo.com/main/personal",
+    "customerIndustry": "Financial Services",
+    "customerSIC": "1996",
+    "customerNAICS": "351098utigjanlsfavaweoig"
 }
 
 const facilityNames = [
@@ -49,24 +49,19 @@ const assetClasses = [
     'Commercial ABS'
 ]
 
-const customerIds = [
-    '63eaca8559ef868d14301442',
-    '63ed51357b05a5c9a9d0991e'
-]
 
 const fillBlockChainData = (desiredNumber = 10) => {
     var indexIncrement = 0;
     while (indexIncrement <= desiredNumber) {
         // Fill Loan Tape
-        let customerId = customerIds[Math.floor(Math.random() * customerIds.length)];
-        let assetClass = assetClasses[Math.floor(Math.random() * assetClasses.length)];
-        let facilityID = Math.floor(getRandomFloatBetween(1, 100))
-        var facility = facilityNames[Math.floor(Math.random() * facilityNames.length)] + '-' + String(Math.floor(getRandomFloatBetween(1, 72)))
+        let borrowerId   = borrowerIds[Math.floor(Math.random() * borrowerIds.length)];
+        let assetClass   = assetClasses[Math.floor(Math.random() * assetClasses.length)];
+        let facilityID   = Math.floor(getRandomFloatBetween(1, 100))
+        var facility     = facilityNames[Math.floor(Math.random() * facilityNames.length)] + '-' + String(Math.floor(getRandomFloatBetween(1, 72)))
         var randomAmount = 1000 * getRandomFloatBetween(1, 100)
         var transactionDate = moment().add(indexIncrement, 'hours').toISOString()
         let transaction = {
-            transactionId: Math.floor(Math.random() * Date.now()),
-            customerId: customerId,
+            borrowerId: borrowerId,
             assetClass: assetClass,
             amount: randomAmount,
             term: getRandomFloatBetween(1, 72),
@@ -77,16 +72,15 @@ const fillBlockChainData = (desiredNumber = 10) => {
             transactionDate: transactionDate
         }
         setTimeout(async () => {
-            let existingCache = await getKeyFromRedis(`ledger:${customerId}:blockchain`);
+            let existingCache = await getKeyFromRedis(`ledger:${borrowerId}:blockchain`);
             if (existingCache) {
-                let blockchain = JSON.parse(existingCache)
+                let blockchain  = JSON.parse(existingCache)
                 let redisUpdate = addLedgerBlockStatic(blockchain, transaction)
                 if (redisUpdate.length === 0) { return console.log('No updates') };
-                addToCache(`ledger:${transaction.customerId}:blockchain`, redisUpdate).then((reply) => {
+                addToCache(`ledger:${transaction.borrowerId}:blockchain`, redisUpdate).then((reply) => {
                     console.log(`Transaction Added to Blockchain ${reply}`);
-                    // console.log(blockchain[blockchain.length - 1])
                 }).catch((err) => console.log(err));
-                await mongoOptimCustomer.updateOne({ customerId: transaction.customerId }, { $set: { blockChainSnapshot: redisUpdate } });
+                await Transactions.updateOne({ borrowerId: borrowerId }, { $set: { blockChainSnapshot: redisUpdate } });
             }
         }, indexIncrement * 300);
         indexIncrement++
