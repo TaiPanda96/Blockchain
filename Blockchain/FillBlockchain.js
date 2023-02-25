@@ -3,7 +3,7 @@ const { Blockchain, LedgerBlock, addLedgerBlockStatic } = require('./Ledger');
 const { getRandomFloatBetween, getNestedObject } = require("../Utility");
 const { getKeyFromRedis, addToCache } = require('../Cache/RedisFunctions')
 
-const mongoOptimCustomer = require("../Schemas/Customers/CustomerSchema");
+const mongoOptimCustomer = require("../Schemas/Borrowers/Schema");
 
 const DEBUG = true;
 

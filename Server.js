@@ -1,18 +1,21 @@
 require('dotenv').config();
-const moment     = require('moment');
-const express    = require("express");
-const bodyParser = require('body-parser');
-const fileUpload = require('express-fileupload');
-const cron       = require('node-cron');
-const mongoose   = require('mongoose');
+const moment       = require('moment');
+const express      = require("express");
+const bodyParser   = require('body-parser');
+const mongoose     = require('mongoose');
+const cookieParser = require("cookie-parser");
+
+const fileUpload   = require('express-fileupload');
 
 // Define Express App + Port #
-const app = express();
+const app  = express();
 const PORT = 8080;
 
+// Set Defaults For Server
 app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cookieParser());
 
 // Set Allow Access Control Origin
 const allowedOrigins = ['http://localhost:3000'];
@@ -74,13 +77,11 @@ if (process.env.RUN === 'TRUE') {
 }
 
 // Event Framework
-const { eventEmitter }   = require('./Triggers/GlobalEmitter');
-const { deleteAllKeys }  = require('./Cache/RedisFunctions');
-const { transactionCron } = require("./CronJob/CronContainer");
+const { eventEmitter }       = require('./Triggers/GlobalEmitter');
+const { deleteAllKeys }      = require('./Cache/RedisFunctions');
+const { transactionCron }    = require("./CronJob/CronContainer");
 const { fillBlockChainData } = require('./Blockchain/FillBlockchain')
 transactionCron();
-// deleteAllKeys();
-// fillBlockChainData();
 
 // Handling
 const { customerEventHandler, transactionEventHandler, smartContractEventHandler } = require('./Triggers/EventMonitoring');

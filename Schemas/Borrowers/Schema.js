@@ -123,5 +123,5 @@ const OptimUserSchema = new Schema({
   }
 });
 
-var mongoOptimCustomer = connectionInstance.model('mongoOptimUser', OptimUserSchema, 'Customers');
+var mongoOptimCustomer = connectionInstance.model('mongoOptimBorrower', OptimUserSchema, 'Borrowers');
 module.exports = mongoOptimCustomer;

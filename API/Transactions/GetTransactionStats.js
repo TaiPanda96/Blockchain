@@ -1,11 +1,11 @@
 const moment = require('moment');
-const mongoOptimCustomer = require("../../Schemas/Customers/CustomerSchema");
+const Borrower = require("../../Schemas/Borrowers/Schema");
 const { getCachedQueryResult } = require("../../Cache/RedisFunctions")
 
 const getAssetClassStats = async (req,res) => {
     let { customerId } = req.query;
     // Get top 5 asset classes
-    let top5AssetClasses = await mongoOptimCustomer.aggregate([
+    let top5AssetClasses = await Borrower.aggregate([
         { $match: { customerId: customerId} },
         { $unwind: "$blockChainSnapshot" },
         { $group: { _id: "$blockChainSnapshot.data.assetClass", count: { $sum: 1 } } },
@@ -18,7 +18,7 @@ const getAssetClassStats = async (req,res) => {
 const getTransactionStats = async (req, res) => {
     let { customerId } = req.query;
     // Get top 5 highest amount transactions
-    let facilityStats = await mongoOptimCustomer.aggregate([
+    let facilityStats = await Borrower.aggregate([
         { $match: { customerId: customerId } },
         { $unwind: "$blockChainSnapshot" },
         { $group: { _id: "$blockChainSnapshot.data.facilityName",totalAmount: { $sum: "$blockChainSnapshot.data.amount" } } },
@@ -31,7 +31,7 @@ const getTransactionStats = async (req, res) => {
 const getTransactionStatsByDate = async (req, res) => {
     let { customerId } = req.query;
     // Get top 5 dates with highest volume of transactions
-    let transactionStats = await mongoOptimCustomer.aggregate([
+    let transactionStats = await Borrower.aggregate([
         { $match: { customerId: customerId } },
         { $unwind: "$blockChainSnapshot" },
         { $group: { _id: "$blockChainSnapshot.data.transactionDate", count: { $sum: 1 } } },

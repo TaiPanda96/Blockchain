@@ -1,5 +1,5 @@
 const moment = require('moment');
-const mongoOptimCustomer = require("../../Schemas/Customers/CustomerSchema");
+const mongoOptimCustomer = require("../../Schemas/Borrowers/Schema");
 const { getKeyFromRedis, getMultiKeysFromRedis, searchKeys } = require("../../Cache/RedisFunctions");
 
 const errorMessage = {

@@ -54,7 +54,12 @@ const getCachedQueryResult = async (cacheKey, cacheExpiry,resultFunction, result
             let args = resultArgs.args || {}
             if (!args) { return }
             let { filterQuery, projectionQuery, method } = args; 
-            let cachedResult   = await resultFunction.findOne(filterQuery,projectionQuery);
+            let cachedResult;
+            if (method === 'findById') {
+                cachedResult   = await resultFunction.findById(filterQuery['id'],projectionQuery);
+            } else {
+                cachedResult   = await resultFunction.findOne(filterQuery,projectionQuery);
+            }
             if (cachedResult) {
                 output = [cachedResult] 
             } 

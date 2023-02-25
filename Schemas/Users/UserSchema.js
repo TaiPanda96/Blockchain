@@ -3,17 +3,6 @@ const { Schema } = mongoose;
 const { connectionInstance } = require("../MongoConnect");
 
 const OptimUserSchema = new Schema({
-  customerId: {
-    type: String,
-    required: true, 
-    index: { unique: true },
-  },
-  orgLabel:  {
-    type: String,
-    required: false, 
-    unique: false,
-    trim: true,
-  },
   username:  {
     type: String,
     required: false, 
@@ -32,7 +21,7 @@ const OptimUserSchema = new Schema({
     unique: false,
     trim: true,
   },
-  userRole:  {
+  role:  {
     type: String,
     required: false, 
     unique: false,
@@ -49,5 +38,5 @@ const OptimUserSchema = new Schema({
   }
 });
 
-var mongoOptimUser = connectionInstance.model('mongoOptimUser', OptimUserSchema, 'Customers');
+var mongoOptimUser = connectionInstance.model('mongoOptimUser', OptimUserSchema, 'Users');
 module.exports = mongoOptimUser;

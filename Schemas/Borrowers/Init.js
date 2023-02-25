@@ -1,7 +1,6 @@
 const { getNestedObject }  = require('../../Utility');
-const { mongo } = require('mongoose');
 
-const initalizeCustomer = async (customer = {}) => {
+const BorrowerProfile = async (customer = {}) => {
     if (Object.keys(customer).length === 0) throw Error('Customer Object is empty');
     let customerId = mongo.ObjectId();
     let organization = {
@@ -26,4 +25,4 @@ const initalizeCustomer = async (customer = {}) => {
 }
 
 module.exports.getNestedObject = getNestedObject;
-module.exports.initalizeCustomer = initalizeCustomer;
+module.exports.BorrowerProfile = BorrowerProfile;

@@ -1,4 +1,4 @@
-const mongoOptimCustomer = require("../../Schemas/Customers/CustomerSchema");
+const mongoOptimCustomer = require("../../Schemas/Borrowers/Schema");
 
 const createFinancialCovenant = async (customerId, args = {}) => {
     let existingCustomer = await mongoOptimCustomer.findOne({customerId: customerId});
