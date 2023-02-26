@@ -32,6 +32,7 @@ const smartContractEventHandler = async (ledger, smartContract = {}) => {
         }).catch((err) => console.log(err));
         await Transactions.updateOne({ borrowerId: smartContract.borrowerId }, { $push: { smartContract: smartContract } });
     } else {
+        console.log(smartContract)
         let existingCustomer = await Borrower.findOne({ _id: smartContract.borrowerId }, {
             _id: 0,
             customerId: 1,

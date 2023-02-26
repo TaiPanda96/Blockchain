@@ -45,7 +45,6 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     let { username, password } = req.body;
     if (!username || !password) { return res.status(400).send({error: "invalid username or password"})};
-
     // verify user 
     try {
         const user = await User.findOne({ username: username });
@@ -54,6 +53,7 @@ const login = async (req, res) => {
             if (!result) { return res.status(401).send({message: "Login Unsuccessful"}) } 
             const token  = jwt.sign({ id: user._id, username: user.username, role: user.role, expiresIn:  3 * 60 * 60 },jwtSecret);
             res.cookie("jwt", token, { maxAge: 3 * 60 * 60 * 1000 });
+            console.log("login success")
             return res.status(200).send({ id: user._id, username: user.username, email: user.email, role: user.role, expiresIn:  3 * 60 * 60 });
         });
     } catch (err) {

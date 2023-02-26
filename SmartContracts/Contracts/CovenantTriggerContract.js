@@ -1,14 +1,12 @@
 const Borrower = require("../../Schemas/Users/UserSchema");
 
-const createFinancialCovenant = async (customerId, args = {}) => {
-    let existingCustomer = await Borrower.findOne({customerId: customerId});
-    if (!existingCustomer) { return }
+const createFinancialCovenant = async (args = {}) => {
     return  {
-        customerId: existingCustomer.customerId,
-        customerEmail: existingCustomer.customerEmail,
+        borrowerId: args['_id'].toString(),
+        email: args['email'],
         contractId: args['contractId'],
         contractType: args['contractType'],
-        parties: [existingCustomer.customerName],
+        parties: [args['customerName']],
         triggerOn: args['triggerSteps'] || [],
         executionSteps: args['executionSteps'] || [],
         settlementSteps: args['settlementSteps'] || []
