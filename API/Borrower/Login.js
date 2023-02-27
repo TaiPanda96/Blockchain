@@ -2,9 +2,18 @@ const moment    = require("moment");
 const bcrypt    = require('bcrypt');
 const jwt       = require("jsonwebtoken");
 const jwtSecret = process.env.JWT_TOKEN;
-const { eventEmitter } = require('../../Triggers/GlobalEmitter');
 
 const User = require("../../Schemas/Users/UserSchema");
+
+const generateTokens = async (userObj = {}) => {
+    let payload = { _id: userObj._id.toString(), username: userObj.username, email: userObj.email, role: userObj.role}
+    const accessToken  = jwt.sign(payload, jwtSecret, { expiresIn: "30m"});
+    const refreshToken = jwt.sign(payload, jwtSecret, { expiresIn: '60d'});
+    const userToken = await User.findOne({ _id: userObj._id, accessToken: {$exists: true}});
+    if (userToken) { await User.updateOne({ _id: userObj._id}, {$set: { accessToken: accessToken, refreshToken: refreshToken}}) }
+    await User.updateOne({_id: userObj._id, }, { $set: { accessToken: accessToken, refreshToken: refreshToken } })
+    return { userObj, accessToken : accessToken, refreshToken: refreshToken}
+}
 
 const register = async (req, res) => {
     const { username, password, email, role } = req.body;
@@ -31,10 +40,7 @@ const register = async (req, res) => {
     // verify user
     try {
         User.create({ ...userPayload }).then((newUser) => {
-            const token  = jwt.sign({ id: newUser._id, username: newUser.username, email: newUser.email, role: newUser.role, expiresIn:  3 * 60 * 60}, jwtSecret);
-            res.cookie("jwt", token, { maxAge: 3 * 60 * 60 * 1000 });
-            eventEmitter.emit('customer', { ...newUser, updatedAt: moment().toDate() });
-            return res.status(200).send("User successfully created");
+            return res.status(200).send(`${newUser.username} successfully created`);
         });
     } catch (err) {
         console.log(err)
@@ -49,13 +55,10 @@ const login = async (req, res) => {
     try {
         const user = await User.findOne({ username: username });
         if (!user) { return res.status(400).send('User does not exist') }
-        bcrypt.compare(password, user.password).then((result) => {
-            if (!result) { return res.status(401).send({message: "Login Unsuccessful"}) } 
-            const token  = jwt.sign({ id: user._id, username: user.username, role: user.role, expiresIn:  3 * 60 * 60 },jwtSecret);
-            res.cookie("jwt", token, { maxAge: 3 * 60 * 60 * 1000 });
-            console.log("login success")
-            return res.status(200).send({ id: user._id, username: user.username, email: user.email, role: user.role, expiresIn:  3 * 60 * 60 });
-        });
+        let verify = bcrypt.compare(password, user.password);
+        if (!verify) { return res.status(401).send({message: "Login Unsuccessful"}) };
+        let authUser = await generateTokens(user);
+        return res.status(200).send({ _id: authUser.userObj._id, username: authUser.userObj.username, email: authUser.userObj.email, role: authUser.userObj.role, accessToken: authUser.accessToken, refreshToken: authUser.refreshToken, expiresIn:  3 * 60 * 60 });
     } catch (err) {
         console.log(err);
         return res.status(400).send({message: "Unable to register user" , error: err.message})
@@ -63,20 +66,6 @@ const login = async (req, res) => {
 
 }
 
-const checkPermissionsMiddleware = async (req, res, next) => {
-    if (!req.cookies['jwt']) { return res.status(401).send({ message: "Access Restricted" })};
-    jwt.verify(req.cookies['jwt'], jwtSecret, (err, verifiedToken) => {
-        if (err) { return res.status(401).send({ message: "Access Restricted", error: err }) }
-        if (!verifiedToken.role) {
-            return res.status(401).send({ message: "Access Restricted", error: err });
-        } else {
-            req.cachedData = verifiedToken;
-            return next();
-        }
-    });
-}
-
 
 module.exports.register = register;
 module.exports.login    = login;
-module.exports.checkPermissionsMiddleware = checkPermissionsMiddleware;

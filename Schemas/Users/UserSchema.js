@@ -112,6 +112,18 @@ const OptimUserSchema = new Schema({
     unique: false,
     trim: true,
   },
+  accessToken: {
+    type: String,
+    required: false, 
+    unique: true,
+    trim: true,
+  },
+  refreshToken: {
+    type: String,
+    required: false, 
+    unique: true,
+    trim: true,
+  },
   customerCreated: {
     type: Date,
     required: false,
@@ -127,10 +139,6 @@ const OptimUserSchema = new Schema({
     required: false,
     default: Date.now,
   },
-  updatedAt: {
-    type: Date,
-    required: false
-  }
 });
 
 var Borrower = connectionInstance.model('mongoOptimUser', OptimUserSchema, 'Users');

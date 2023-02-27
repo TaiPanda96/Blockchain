@@ -4,7 +4,6 @@ const express      = require("express");
 const bodyParser   = require('body-parser');
 const mongoose     = require('mongoose');
 const cookieParser = require("cookie-parser");
-
 const fileUpload   = require('express-fileupload');
 
 // Define Express App + Port #
@@ -17,6 +16,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+
 // Set Allow Access Control Origin
 const allowedOrigins = ['http://localhost:3000'];
 app.use((req, res, next) => {
@@ -27,7 +27,7 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0]);
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, content-type, auth-token, Authorization, stripe-signature, APPS');
+  res.setHeader('Access-Control-Allow-Headers', 'content-type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', true);
   return next();
 });
@@ -42,7 +42,7 @@ process.on('unhandledRejection', (reason, promise) => {
 let server = app.listen(PORT, (server) => { console.log(`Server is running on port ${PORT}.`) });
 
 server.keepAliveTimeout = 65000;
-server.headersTimeout = 66000;
+server.headersTimeout   = 66000;
 
 
 mongoose.set("strictQuery", false);

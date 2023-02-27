@@ -8,23 +8,17 @@ const errorMessage = {
 }
 
 const getBorrowerProfile = async (req, res) => {
-    let { id } = req.query;
-    if (typeof id !== 'string' ) { return res.status(400).send({...errorMessage, error: 'Invalid customer id'})};
-    let userCacheKey = `user:${id}`;
-    let cacheExpiry = 3600;
-    let output = await getCachedQueryResult(userCacheKey, cacheExpiry,User, {
-        filterQuery: { _id :id },
-        projectionQuery: {
-            email: 1,
-            username: 1, 
-            role:1
-        }, methodName: 'findById'
-    });
-    let userProfile = output;
     try {
-        return res.status(200).send(userProfile || {});
+        let cacheKey = `user:${req.userObj._id}`;
+        let verifiedUser = await getCachedQueryResult(cacheKey, 1,User,{
+            filterQuery: {_id: req.userObj._id },
+            projectionQuery: { _id: 0, username: 1, email: 1, role: 1}
+        });
+        if (!verifiedUser) return res.status(200).send([]);
+        return res.status(200).send(verifiedUser || {});
     } catch (err) {
-        return res.status(400).send({error: err});
+        console.log(err)
+        return res.status(400).send({...errorMessage, error: err});
     }
 }
 

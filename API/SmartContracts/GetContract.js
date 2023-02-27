@@ -7,15 +7,15 @@ const errorMessage = {
 }
 
 const getContract = async (req, res) => {
-    let { borrowerId } = req.params;
     // Check Valid Customer
-    let existingCustomer = await Borrower.findById(borrowerId);
+    let existingCustomer = await Borrower.findOne({ _id: req.userObj._id });
     if (!existingCustomer) return res.status(400).send({ ...errorMessage, error: 'No customer found' });
-
-    let keys = await searchKeys(`smartContract:${borrowerId}:*`);
+    let keys = await searchKeys(`smartContract:${req.userObj._id}:*`);
     if (!keys) return res.status(400).send({ ...errorMessage, error: 'No transactions found' });
 
-    let data = await getMultiKeysFromRedis(keys);
+    console.log(keys)
+
+    let data = Array.isArray(keys) && keys.length > 0 ? await getMultiKeysFromRedis(keys) : [];
     if (!data) return res.status(400).send([]);
 
     let smartContracts = data.map(e => { return JSON.parse(e).map(e => {

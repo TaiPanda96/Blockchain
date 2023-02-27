@@ -1,7 +1,7 @@
 const router = require('express').Router();
 
 const transactionRoute = require("./Transactions/TransactionsRoutes");
-const optimUserRoute   = require("./Borrower/Authroutes");
+const optimUserRoute   = require("./Borrower/BorrowerRoutes");
 const contractRoute    = require("./SmartContracts/ContractRoutes");
 
 router.use('/auth', optimUserRoute);

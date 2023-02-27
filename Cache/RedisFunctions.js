@@ -49,17 +49,11 @@ const getCachedQueryResult = async (cacheKey, cacheExpiry,resultFunction, result
         let cacheResult = await redisClient.get(cacheKey);
         if (cacheResult) {
             output = JSON.parse(cacheResult);
-            console.log('Found this data from cache!')
         } else {
-            let args = resultArgs.args || {}
-            if (!args) { return }
-            let { filterQuery, projectionQuery, method } = args; 
             let cachedResult;
-            if (method === 'findById') {
-                cachedResult   = await resultFunction.findById(filterQuery['id'],projectionQuery);
-            } else {
-                cachedResult   = await resultFunction.findOne(filterQuery,projectionQuery);
-            }
+            let { filterQuery, projectionQuery } = resultArgs; 
+
+            cachedResult   = await resultFunction.findOne(filterQuery,projectionQuery);
             if (cachedResult) {
                 output = [cachedResult] 
             } 

@@ -26,6 +26,7 @@ const smartContractEventHandler = async (ledger, smartContract = {}) => {
         // Append new transaction object
         let redisUpdate = addLedgerBlockStatic(blockChain, smartContract)
         if (redisUpdate.length === 0) { return console.log('No updates') };
+        console.log(smartContract.borrowerId)
         addToCache(`smartContract:${smartContract.borrowerId}:${smartContract.contractId}`, redisUpdate).then((reply) => {
             console.log(`Transaction Added to Blockchain ${reply}`);
             console.log(blockChain[blockChain.length - 1])

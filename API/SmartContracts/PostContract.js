@@ -1,5 +1,5 @@
 const moment = require('moment');
-const Borrower    = require("../../Schemas/Users/UserSchema");
+const User    = require("../../Schemas/Users/UserSchema");
 const Transactions = require("../../Schemas/Transactions/TransactionsSchema");
 const { eventEmitter }      = require('../../Triggers/GlobalEmitter');
 const { initSmartContract } = require("../../SmartContracts/CreateContract");
@@ -10,9 +10,9 @@ const errorMessage = {
 }
 
 const postContract = async (req,res) => {
-    let { borrowerId } = req.params; 
     // Check Valid Customer
-    let existingCustomer = await Borrower.findOne({ _id: borrowerId });
+    let borrowerId = req.userObj._id;
+    let existingCustomer = await User.findOne({ _id: borrowerId });
     if (!existingCustomer) return res.status(400).send({ ...errorMessage, error: 'No customer found' });
 
     // Check Valid Contract Type
