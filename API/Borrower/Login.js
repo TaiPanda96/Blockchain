@@ -1,4 +1,3 @@
-const moment    = require("moment");
 const bcrypt    = require('bcrypt');
 const jwt       = require("jsonwebtoken");
 const jwtSecret = process.env.JWT_TOKEN;
@@ -38,9 +37,10 @@ const register = async (req, res) => {
     }
 
     // verify user
-    try {
-        User.create({ ...userPayload }).then((newUser) => {
-            return res.status(200).send(`${newUser.username} successfully created`);
+    try { 
+        User.create({ ...userPayload }).then(async (newUser) => {
+        let authUser = await generateTokens(newUser);
+        return res.status(200).send({ _id: authUser.userObj._id, username: authUser.userObj.username, email: authUser.userObj.email, role: authUser.userObj.role, accessToken: authUser.accessToken, refreshToken: authUser.refreshToken, expiresIn:  3 * 60 * 60 });
         });
     } catch (err) {
         console.log(err)

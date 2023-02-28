@@ -21,6 +21,12 @@ const OptimTransactionSchema = new Schema({
         unique: false,
         trim: true,
     },
+    riskReview: {
+        type: Array,
+        required: false, 
+        unique: false,
+        trim: true,
+    },
     createdAt: {
         type: Date,
         required: false,

@@ -31,9 +31,8 @@ const smartContractEventHandler = async (ledger, smartContract = {}) => {
             console.log(`Transaction Added to Blockchain ${reply}`);
             console.log(blockChain[blockChain.length - 1])
         }).catch((err) => console.log(err));
-        await Transactions.updateOne({ borrowerId: smartContract.borrowerId }, { $push: { smartContract: smartContract } });
+        await Transactions.updateOne({ borrowerId: smartContract.borrowerId }, { $push: { smartContract: smartContract } }, { upsert: true, setDefaultsOnInsert: false });
     } else {
-        console.log(smartContract)
         let existingCustomer = await Borrower.findOne({ _id: smartContract.borrowerId }, {
             _id: 0,
             customerId: 1,
@@ -58,8 +57,12 @@ const smartContractEventHandler = async (ledger, smartContract = {}) => {
         addToCache(`smartContract:${smartContract.borrowerId}:${smartContract.contractId}`, ledger.blockchain).then((reply) => {
             console.log(`Smart Contract Added For ${smartContract.borrowerId}: ${reply}`);
         }).catch((err) => console.log(err));
-        await Transactions.updateOne({ borrowerId: smartContract.borrowerId }, { $push: { smartContracts: smartContract } });
+        await Transactions.updateOne({ borrowerId: smartContract.borrowerId }, { $push: { smartContracts: smartContract } }, { upsert: true, setDefaultsOnInsert: false });
     }
+}
+
+const riskEventHandler = async (riskObject = {}) => {
+    
 }
 
 const transactionEventHandler = async (ledger, transactionObj = {}) => {
@@ -76,17 +79,16 @@ const transactionEventHandler = async (ledger, transactionObj = {}) => {
             console.log(`Transaction Added to Blockchain ${reply}`);
             console.log(blockChain[blockChain.length - 1])
         }).catch((err) => console.log(err));
-        await Transactions.updateOne({ borrowerId: transactionObj.borrowerId }, { $set: { blockChainSnapshot: redisUpdate } });
+        await Transactions.updateOne({ borrowerId: transactionObj.borrowerId }, { $set: { blockChainSnapshot: redisUpdate } }, { upsert: true, setDefaultsOnInsert: false});
     } else {
         // Initialize Genesis Block and Pass the New Customer Obj to create the new ledger
         let existingCustomer = await Borrower.findById(transactionObj.borrowerId);
-        console.log(existingCustomer)
         ledger.startGenesisBlock(existingCustomer._doc);
         ledger.appendLedgerBlock(transactionObj);
         addToCache(`ledger:${transactionObj.borrowerId}:blockchain`, ledger.blockchain).then((reply) => {
             console.log(`Transaction Added to Blockchain ${reply}`);
         }).catch((err) => console.log(err));
-        await Transactions.updateOne({ borrowerId: transactionObj.borrowerId }, { $set: { blockChainSnapshot: ledger.blockchain } });
+        await Transactions.updateOne({ borrowerId: transactionObj.borrowerId }, { $set: { blockChainSnapshot: ledger.blockchain } }, { upsert: true, setDefaultsOnInsert: false});
     }
 }
 
