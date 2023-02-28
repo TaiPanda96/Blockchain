@@ -21,6 +21,12 @@ const OptimUserSchema = new Schema({
     unique: false,
     trim: true,
   },
+  relationships: {
+    type: Array,
+    required: false, 
+    unique: false,
+    trim: true,
+  },
   role:  {
     type: String,
     required: false, 
@@ -123,6 +129,15 @@ const OptimUserSchema = new Schema({
     required: false, 
     unique: true,
     trim: true,
+  },
+  reviewDate: {
+    type: Date,
+    required: false,
+  },
+  facility: {
+    type: Array,
+    required: false, 
+    unique: false
   },
   customerCreated: {
     type: Date,

@@ -8,10 +8,12 @@ const errorMessage = {
 }
 
 const getAllTransactions = async (req, res) => {
-    let { borrowerId, assetClass, transactionDate } = req.query
+    let { assetClass, transactionDate } = req.query
     // Check Valid Customer
-    let existingCustomer = await Borrower.findById(borrowerId);
+    let existingCustomer = await Borrower.findOne({ _id: req.userObj._id });
     if (!existingCustomer) return res.status(400).send({ ...errorMessage, error: 'No customer found' });
+
+    let borrowerId = existingCustomer._id.toString();
 
     // Check Valid Transaction Date 
     if (transactionDate) {

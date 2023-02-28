@@ -14,6 +14,13 @@ const generateTokens = async (userObj = {}) => {
     return { userObj, accessToken : accessToken, refreshToken: refreshToken}
 }
 
+const refresh = async (req,res) => {
+    if (!req.userObj) { return res.status(401).send({error: "Access Restricted"})}
+    const existingUser = await User.findOne({ _id: req.userObj._id, accessToken: { $exists: true }});
+    if (!existingUser) { return res.status(401).send({error: "Access Restricted"})}
+    return { _id: authUser.userObj._id, username: authUser.userObj.username, email: authUser.userObj.email, role: authUser.userObj.role, accessToken: authUser.accessToken, refreshToken: authUser.refreshToken, expiresIn:  3 * 60 * 60 };
+}
+
 const register = async (req, res) => {
     const { username, password, email, role } = req.body;
     if (!email || !password || !role) { return res.status(400).send({ error: "Invalid parameters" }) }
@@ -54,7 +61,7 @@ const login = async (req, res) => {
     // verify user 
     try {
         const user = await User.findOne({ username: username });
-        if (!user) { return res.status(400).send('User does not exist') }
+        if (!user) { return res.status(400).send({ error: "UserAuthError", message: "User does not exist"}) }
         let verify = bcrypt.compare(password, user.password);
         if (!verify) { return res.status(401).send({message: "Login Unsuccessful"}) };
         let authUser = await generateTokens(user);
