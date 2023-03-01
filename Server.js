@@ -85,7 +85,7 @@ const { checkRiskReviewSchedule } = require('./Triggers/RiskReview');
 riskReviewCron();
 
 // Handling
-const { customerEventHandler, transactionEventHandler, smartContractEventHandler, riskEventHandler } = require('./Triggers/EventMonitoring');
+const { transactionEventHandler, smartContractEventHandler, riskEventHandler } = require('./Triggers/EventMonitoring');
 
 eventEmitter.on("transaction", async function verify(transactionObj = {}) {
     console.log('Event Triggered: Transaction');
