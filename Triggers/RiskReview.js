@@ -22,7 +22,7 @@ const checkRiskReviewSchedule = async () => {
                 updateOne: {
                   "filter": { borrowerId: userObj._id },
                   "update": { $push: { riskReview: riskReviewNotification} },
-                  "upsert": false,
+                  "upsert": true,
                   "setDefaultsOnInsert": false,
                 }
               });
@@ -30,7 +30,7 @@ const checkRiskReviewSchedule = async () => {
                 updateOne: {
                     "filter": { _id: userObj._id },
                     "update": { $set: { reviewDate : riskReviewNotification.reviewDate } },
-                    "upsert": false,
+                    "upsert": true,
                     "setDefaultsOnInsert": false,
                   }
             });
@@ -42,7 +42,6 @@ const checkRiskReviewSchedule = async () => {
             }).catch(err => {
                 console.log(err)
             });
-    
         }
 
         if (bulkWriteTransactions) {
@@ -52,10 +51,6 @@ const checkRiskReviewSchedule = async () => {
                 console.log(err)
             });
         }
-
-
-
-
     }
 
 }

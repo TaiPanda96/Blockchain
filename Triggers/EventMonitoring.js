@@ -1,3 +1,4 @@
+const moment = require("moment");
 const Borrower = require("../Schemas/Users/UserSchema");
 const Transactions = require("../Schemas/Transactions/TransactionsSchema");
 const { addLedgerBlockStatic } = require("../Blockchain/Ledger");
@@ -61,8 +62,26 @@ const smartContractEventHandler = async (ledger, smartContract = {}) => {
     }
 }
 
-const riskEventHandler = async (riskObject = {}) => {
-    
+const riskEventHandler = async (userObj = {}) => {
+    let existingBorrower = await Borrower.findOne({ _id: userObj._id, role: "borrower"});
+    if (!existingBorrower) { return console.log('This borrower does not exist')};
+    let existingTransactions = await Transactions.findOne({ borrowerId: userObj._id});
+    if (!existingTransactions) {
+        // Create first risk review notification 
+        let riskNotification = {
+            borrowerId: userObj._id,
+            email: userObj.email,
+            date: moment().local().toDate(),
+            title: "Quarterly Review",
+            upcoming: true,
+            reviewDate: moment().add('5', 'hours').local().toDate(),
+            requiredDocuments: ['3 Years of Financials', 'Entity Formation Document', 'Asset Agreement'],
+            submittedTo: "" }
+        Transactions.updateOne({_id: userObj._id }, { $push: { riskReview: riskNotification} }, { upsert: true, setDefaultOnInsert: true}).then((result) => {
+            if (result) {
+                console.log(`${userObj._id} Risk Notification Created`)
+            }}).catch((error) => { console.log(error) })
+    }
 }
 
 const transactionEventHandler = async (ledger, transactionObj = {}) => {
@@ -89,9 +108,11 @@ const transactionEventHandler = async (ledger, transactionObj = {}) => {
             console.log(`Transaction Added to Blockchain ${reply}`);
         }).catch((err) => console.log(err));
         await Transactions.updateOne({ borrowerId: transactionObj.borrowerId }, { $set: { blockChainSnapshot: ledger.blockchain } }, { upsert: true, setDefaultsOnInsert: false});
+
     }
 }
 
 module.exports.customerEventHandler = customerEventHandler;
 module.exports.transactionEventHandler = transactionEventHandler;
 module.exports.smartContractEventHandler = smartContractEventHandler;
+module.exports.riskEventHandler = riskEventHandler;

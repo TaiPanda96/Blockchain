@@ -79,26 +79,21 @@ if (process.env.RUN === 'TRUE') {
 // Event Framework
 const { eventEmitter }       = require('./Triggers/GlobalEmitter');
 const { deleteAllKeys }      = require('./Cache/RedisFunctions');
-const { transactionCron }    = require("./CronJob/CronContainer");
+const { transactionCron, riskReviewCron }    = require("./CronJob/CronContainer");
 const { fillBlockChainData } = require('./Blockchain/FillBlockchain');
 const { checkRiskReviewSchedule } = require('./Triggers/RiskReview');
-// fillBlockChainData();
-// checkRiskReviewSchedule();
+riskReviewCron();
 
 // Handling
-const { customerEventHandler, transactionEventHandler, smartContractEventHandler } = require('./Triggers/EventMonitoring');
-
-eventEmitter.on("customer", async function verify(customerObj = {}) {
-    return customerEventHandler(ledger, customerObj);
-});
+const { customerEventHandler, transactionEventHandler, smartContractEventHandler, riskEventHandler } = require('./Triggers/EventMonitoring');
 
 eventEmitter.on("transaction", async function verify(transactionObj = {}) {
     console.log('Event Triggered: Transaction');
     return transactionEventHandler(ledger, transactionObj);
 });
 
-eventEmitter.on("risk", async function verify(transactionObj = {}) {
-    return transactionEventHandler(ledger, transactionObj);
+eventEmitter.on("risk-review", async function verify(userObj = {}) {
+    return riskEventHandler(userObj);
 });
 
 eventEmitter.on('contract', async function verify(smartContract = {}) {
