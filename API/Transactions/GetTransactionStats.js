@@ -77,10 +77,16 @@ const getTransactionStatsByDate = async (req, res) => {
             count: { $sum: 1}
         }},
         { $project: { _id: 0, year: "$_id.year" , month: "$_id.month", day: "$_id.day",hour: "$_id.hour", count: 1}},
-        { $sort: { hour : -1 } },
+        { $sort: { hour : 1 } },
         { $limit: 10 }
     ]);
-    return res.status(200).send({ chartTitle: 'Hourly Requests', chartData: transactionStats.filter(e => e._id !== null) || []});
+    return res.status(200).send({ chartTitle: 'Hourly Requests', chartData: transactionStats.filter(e => e._id !== null).map(e => {
+        const { year, month, day, hour } = e;
+        return {
+            date: moment(new Date(year, month, day, hour), 'YYYY-MM-DD').format('YYYY-MM-DD HH:MM'),
+            count: e.count
+        }
+    })|| []});
 
 }
 
