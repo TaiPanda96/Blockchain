@@ -14,7 +14,7 @@ const transactionCron = async () => {
 
 const riskReviewCron = async () => {
     cron.schedule('*/5 * * * *', (err) => {
-        console.log('Running transaction fill cron job at ' + new Date());
+        console.log('Running risk review fill cron job at ' + new Date());
         checkRiskReviewSchedule();
         if (err) { 
             console.log(err)

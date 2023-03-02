@@ -82,6 +82,7 @@ const { deleteAllKeys }      = require('./Cache/RedisFunctions');
 const { transactionCron, riskReviewCron }    = require("./CronJob/CronContainer");
 const { fillBlockChainData } = require('./Blockchain/FillBlockchain');
 const { checkRiskReviewSchedule } = require('./Triggers/RiskReview');
+transactionCron();
 riskReviewCron();
 
 // Handling

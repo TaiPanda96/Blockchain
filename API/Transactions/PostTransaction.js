@@ -10,7 +10,7 @@ const errorMessage = {
 
 const postTransaction = async (req, res) => {
     // Check Valid Customer
-    let existingBorrower = await Borrower.findOne({ _id: req.body.borrowerId });
+    let existingBorrower = await Borrower.findOne({ _id: req.userObj._id });
     if (!existingBorrower) return res.status(400).send({ ...errorMessage, error: 'No customer found' });
 
     let { type } = req.query;

@@ -34,7 +34,7 @@ const getAllTransactions = async (req, res) => {
     }
 
     if (filterApplied.length === 0) {
-        output = ledger.sort((a, b) => a.transactionDate > b.transactionDate ? 1 : -1).slice(0, 15)
+        output = ledger.sort((a, b) => a.transactionDate < b.transactionDate ? 1 : -1).slice(0, 15)
     } else {
         filterApplied.forEach((filter) => {
             if (filter.label === 'transactionDate') {
@@ -52,7 +52,7 @@ const getAllTransactions = async (req, res) => {
             }
         })
     }
-    return res.status(200).send(output.slice(0,15));
+    return res.status(200).send(output.slice(0,15) || []);
 }
 
 const getAssetClasses = async (req, res) => {
