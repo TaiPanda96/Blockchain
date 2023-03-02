@@ -11,7 +11,7 @@ const getAssetClassStats = async (req,res) => {
         { $sort: { count: -1 } },
         { $limit: 5 }
     ])
-    return res.status(200).send(top5AssetClasses.filter(e => e._id !== null))
+    return res.status(200).send({ chartTitle: 'Asset Class', chartData: top5AssetClasses.filter(e => e._id !== null) || [] } )
 }
 
 const getTransactionStats = async (req, res) => {
