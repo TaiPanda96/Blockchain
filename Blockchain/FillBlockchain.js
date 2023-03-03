@@ -5,9 +5,6 @@ const { getKeyFromRedis, addToCache } = require('../Cache/RedisFunctions')
 const Transactions = require("../Schemas/Transactions/TransactionsSchema");
 const { Blockchain, LedgerBlock, addLedgerBlockStatic } = require('./Ledger');
 
-
-const borrowerIds = ['63ff6a37f8ac15f8a84477f8']
-
 const genesisBlock = {
     "email":"taishanlin1996@gmail.com",
     "password": "woopitydoopity32",
@@ -50,11 +47,12 @@ const assetClasses = [
 ]
 
 
-const fillBlockChainData = (desiredNumber = 10) => {
+const fillBlockChainData = async (desiredNumber = 10) => {
     var indexIncrement = 0;
+    let borrowers = await Transactions.distinct("borrowerId") || [];
     while (indexIncrement <= desiredNumber) {
         // Fill Loan Tape
-        let borrowerId   = borrowerIds[Math.floor(Math.random() * borrowerIds.length)];
+        let borrowerId   = borrowers[Math.floor(Math.random() * borrowers.length)];
         let assetClass   = assetClasses[Math.floor(Math.random() * assetClasses.length)];
         let facilityID   = Math.floor(getRandomFloatBetween(1, 100))
         var facility     = facilityNames[Math.floor(Math.random() * facilityNames.length)] + '-' + String(Math.floor(getRandomFloatBetween(1, 72)))

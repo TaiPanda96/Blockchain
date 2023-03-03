@@ -43,7 +43,7 @@ const postTransaction = async (req, res) => {
         loanToValue: getNestedObject(req.body, ['loanToValue']) || '',
         facilityID: getNestedObject(req.body, ['facilityID']) || '',
         facilityName: getNestedObject(req.body, ['facilityName']) || '',
-        transactionDate: moment(getNestedObject(req.body, ['transactionDate']) || '', 'YYYY-MM-DD'),
+        transactionDate: moment(getNestedObject(req.body, ['transactionDate']) || '', 'YYYY-MM-DD').toISOString(),
     }
     try {
         eventEmitter.emit('transaction', transaction)

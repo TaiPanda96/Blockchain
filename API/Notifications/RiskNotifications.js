@@ -15,7 +15,7 @@ const getRiskReviewNotifications = async (req,res) => {
         { $unwind: "$riskReview" },
         { $project : { "date": "$riskReview.date", "_id": 0, "title": "$riskReview.title", "upcoming": "$riskReview.upcoming", "reviewDate": "$riskReview.reviewDate" }},
         { $sort: { count: -1 } },
-        { $limit: 10}
+        { $limit: 4}
     ]);
     return res.status(200).send(riskNotifications || []);
 }

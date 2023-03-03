@@ -90,8 +90,29 @@ const getTransactionStatsByDate = async (req, res) => {
 
 }
 
+const getTransactionStatsByInterest = async (req,res) => {
+    // Get top 5 asset classes
+    let pipeline = [
+        { $match: { borrowerId: req.userObj._id } },
+        { $unwind: "$blockChainSnapshot" } ,
+        { $group: { _id: "$blockChainSnapshot.data.assetClass", avg: { $avg: "$blockChainSnapshot.data.interest" } } },
+        { $project : { _id: 0, assetClass: "$_id", avgInterest: "$avg"}},
+        { $sort: { avg: -1 } },
+        { $match: { assetClass: { $ne: null }} },
+        { $limit: 5 }
+    ];
+
+    if (req.query.assetClass) {
+        pipeline.splice(2, 0, { $match: { "blockChainSnapshot.data.assetClass": req.query.assetClass } }) 
+    }
+
+    let avgInterest = await Transaction.aggregate(pipeline);
+    return res.status(200).send({ chartTitle: 'Asset Class Interest %', chartData: avgInterest.filter(e => e._id !== null)});
+}
+
 module.exports = {
     getAssetClassStats,
     getTransactionStats,
-    getTransactionStatsByDate
+    getTransactionStatsByDate,
+    getTransactionStatsByInterest
 }
