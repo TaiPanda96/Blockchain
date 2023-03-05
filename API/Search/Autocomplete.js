@@ -22,8 +22,9 @@ const getSearch = async (req,res) => {
           },
           {
             $project: {
-              "_id": 0,
+              "_id": 1,
               "username": 1,
+              "accessToken": "$accessToken",
               "email": 1,
               "role" : 1,
               "customerName" :1,
